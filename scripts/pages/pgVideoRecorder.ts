@@ -1,25 +1,12 @@
 import PgVideoRecorderDesign from 'generated/pages/pgVideoRecorder';
 import Picker from "sf-core/ui/picker";
 import System from 'sf-core/device/system';
-import { getCombinedStyle } from 'sf-extension-utils/lib/getCombinedStyle';
 import Application from 'sf-core/application';
-import AttributedString from 'sf-core/ui/attributedstring';
-import Dialog from 'sf-core/ui/dialog';
 import Multimedia from 'sf-core/device/multimedia';
-import pushClassNames from '@smartface/contx/lib/styling/action/pushClassNames';
 import permission from 'sf-extension-utils/lib/permission';
 import File from 'sf-core/io/file';
-import FileStream from 'sf-core/io/filestream';
-import Blob from 'sf-core/blob';
-import Path from 'sf-core/io/path';
-import Share from 'sf-core/share';
-import Screen from 'sf-core/device/screen';
-import { Hardware } from 'sf-core/device';
+import Share from 'sf-core/global/share';
 
-const lowQualityAndroidDevices = [
-    'xiaomi',
-    'huawei'
-];
 
 const qualities = {
     iOS: [
@@ -78,6 +65,13 @@ export default class PgVideoRecorder extends PgVideoRecorderDesign {
         this.qualityPickerItems = [];
         qualities[System.OS].forEach(quality => this.qualityPickerItems.push(quality.key));
     }
+    changeRecordElementsVisible(visible: boolean) {
+        this.lblDuration.visible = visible;
+        this.lblNewSize.visible = visible;
+        this.lblOldSize.visible = visible;
+        this.vwRecord.visible = visible;
+        this.btnSave.visible = visible;
+    }
     okCallback(params: { index: number }) {
         const selectedQuality = qualities[System.OS][params.index];
         this.btnPicker.text = `Quality: ${selectedQuality.key}`;
@@ -86,17 +80,14 @@ export default class PgVideoRecorder extends PgVideoRecorderDesign {
 
         return params;
     }
-
     cancelCallback(): void {
         console.log('cancel clicked');
     }
     startRecording() {
-        this.lblDuration.text = '';
-        this.lblNewSize.text = '';
-        this.lblOldSize.text = '';
+        this.changeRecordElementsVisible(false);
 
         permission.getPermission({ androidPermission: Application.Android.Permissions.READ_EXTERNAL_STORAGE, permissionText: global.lang.fileAccessError })
-            .catch(() => console.log('getPermission - ', global.lang.fileAccessError))
+            .catch(() => console.error(global.lang.fileAccessError))
             .then(() => permission.getPermission({
                 androidPermission: Application.Android.Permissions.CAMERA,
                 permissionText: global.lang.cameraPermissionFail, iosPermission: permission.IOS_PERMISSIONS.CAMERA
@@ -110,21 +101,22 @@ export default class PgVideoRecorder extends PgVideoRecorderDesign {
                     page: this,
                     videoQuality: this.selectedQuality,
                     onSuccess: ({ video }) => {
-                        this.video = video;
-                        // this.lblDuration.text = `Video duration: ${duration.toFixed(2)} seconds`;
-                        this.lblOldSize.text = `Size without SF: ${video.size}`;
+                        this.changeRecordElementsVisible(true);
 
-                        console.log('normal size ', video.size)
+                        this.video = video;
+                        this.vwRecord.loadFile(video);
+                        this.lblDuration.text = `Video duration: ${(this.vwRecord.totalDuration / 1000).toFixed(2)} seconds`;
+                        this.lblOldSize.text = `Size without SF: ${(video.size / (1024 * 1024)).toFixed(2)}MiB`;
 
                         Multimedia.convertToMp4({
                             videoFile: video,
-                            outputFileName: `faceVideo-${new Date().toISOString().split('.')[0]}`,
+                            outputFileName: `sf-video-${new Date().toISOString().split('.')[0]}`,
                             onCompleted: ({ video: convertedVideo }) => {
                                 this.convertedVideo = convertedVideo;
-                                this.lblNewSize.text = `Size with SF: ${convertedVideo.size}`;
+                                this.lblNewSize.text = `Size with SF: ${(convertedVideo.size / (1024 * 1024)).toFixed(2)}MiB`;
                             },
                             onFailure: () => {
-                                console.log('convertMp4Err');
+                                console.error('An error has occurred when video converting to mp4');
                             }
                         });
                     }
@@ -137,14 +129,16 @@ export default class PgVideoRecorder extends PgVideoRecorderDesign {
                 .then(() => {
                     Share.share({
                         items: [video],
-                        page: this
+                        page: this,
+                        blacklist: []
                     });
                 });
         }
         else {
             Share.share({
                 items: [video],
-                page: this
+                page: this,
+                blacklist: []
             });
         }
     }
@@ -168,6 +162,7 @@ function onShow(superOnShow: () => void) {
 function onLoad(superOnLoad: () => void) {
     superOnLoad();
     this.setText();
+    this.changeRecordElementsVisible(false);
     this.initPickerItems();
     this.initPicker();
 }
