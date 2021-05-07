@@ -51,6 +51,14 @@ export default class PgVideoRecorder extends PgVideoRecorderDesign {
         this.btnPicker.onPress = () => {
             this.qualityPicker.show(this.okCallback.bind(this), this.cancelCallback.bind(this));
         };
+
+        // @ts-ignore
+        this.vwRecord.android.showController = true;
+        // @ts-ignore
+        this.vwRecord.setControllerEnabled(true);
+        this.vwRecord.onReady = () => {
+            this.lblDuration.text = `Video duration: ${(this.vwRecord.totalDuration / 1000).toFixed(2)} seconds`;
+        };
     }
     setText() {
         this.headerBar.title = 'Video Recorder';
@@ -71,6 +79,7 @@ export default class PgVideoRecorder extends PgVideoRecorderDesign {
         this.lblOldSize.visible = visible;
         this.vwRecord.visible = visible;
         this.btnSave.visible = visible;
+        this.svVideo.layout.applyLayout();
     }
     okCallback(params: { index: number }) {
         const selectedQuality = qualities[System.OS][params.index];
@@ -95,30 +104,37 @@ export default class PgVideoRecorder extends PgVideoRecorderDesign {
             .then(() => {
                 Multimedia.recordVideo({
                     ios: {
-                        cameraDevice: System.OS === System.OSType.IOS ?
-                            Multimedia.iOS.CameraDevice.FRONT : undefined
+                        cameraDevice: System.OS === System.OSType.IOS ? Multimedia.iOS.CameraDevice.FRONT : undefined
                     },
                     page: this,
                     videoQuality: this.selectedQuality,
                     onSuccess: ({ video }) => {
-                        this.changeRecordElementsVisible(true);
+                        try {
+                            this.changeRecordElementsVisible(true);
 
-                        this.video = video;
-                        this.vwRecord.loadFile(video);
-                        this.lblDuration.text = `Video duration: ${(this.vwRecord.totalDuration / 1000).toFixed(2)} seconds`;
-                        this.lblOldSize.text = `Size without SF: ${(video.size / (1024 * 1024)).toFixed(2)}MiB`;
+                            this.video = video;
+                            this.vwRecord.loadFile(video);
 
-                        Multimedia.convertToMp4({
-                            videoFile: video,
-                            outputFileName: `sf-video-${new Date().toISOString().split('.')[0]}`,
-                            onCompleted: ({ video: convertedVideo }) => {
-                                this.convertedVideo = convertedVideo;
-                                this.lblNewSize.text = `Size with SF: ${(convertedVideo.size / (1024 * 1024)).toFixed(2)}MiB`;
-                            },
-                            onFailure: () => {
-                                console.error('An error has occurred when video converting to mp4');
-                            }
-                        });
+                            this.lblOldSize.text = `Size without SF: ${(video.size / (1024 * 1024)).toFixed(2)}MiB`;
+                            this.lblNewSize.text = 'Calculating...';
+
+                            Multimedia.convertToMp4({
+                                videoFile: video,
+                                outputFileName: `sf-video-${new Date().toISOString().split('.')[0]}`,
+                                onCompleted: ({ video: convertedVideo }) => {
+                                    this.convertedVideo = convertedVideo;
+                                    this.lblNewSize.text = `Size with SF: ${(convertedVideo.size / (1024 * 1024)).toFixed(2)}MiB`;
+                                },
+                                onFailure: () => {
+                                    console.error('An error has occurred when video converting to mp4');
+                                }
+                            });
+                        } catch (err) {
+                            console.error('onSuccessError ', err);
+                        }
+                    },
+                    onFailure: e => {
+                        console.log(e);
                     }
                 });
             });
