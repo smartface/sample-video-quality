@@ -14,19 +14,12 @@ const router = Router.of({
             path: "/pages",
             routes: [
                 Route.of({
-                    path: "/pages/page1",
+                    path: "/pages/pgVideoRecorder",
                     build: buildExtender({ 
-                        getPageClass: () => require("pages/page1").default, 
+                        getPageClass: () => require("pages/pgVideoRecorder").default, 
                         headerBarStyle: { visible: true } 
                     })
-                }),
-                Route.of({
-                    path: "/pages/page2",
-                    build: buildExtender({ 
-                        getPageClass: () => require("pages/page2").default, 
-                        headerBarStyle: { visible: true } 
-                    })
-                }),
+                })
             ]
         })
     ]

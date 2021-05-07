@@ -1,2 +1,44 @@
 {
+	".sf": {
+		"&-flexLayout": {
+			"&-fill": {
+				"flexProps": {
+					"flexGrow": 1
+				}
+			}
+		},
+		"&-button": {
+			"&-start": {
+				"marginBottom": 20
+			},
+			"&-quality": {
+				"backgroundColor": "rgba(255,255,255,1)",
+				"textColor": "rgba( 0, 0, 0, 1 )"
+			}
+		},
+		"&-label": {
+			"&-video": {
+				"&-duration": {
+					"textColor": "rgba( 0, 0, 0, 1 )",
+					"textAlignment": "MIDCENTER",
+					"font": {
+						"style": "Semibold"
+					}
+				}
+			},
+			"&-header": {
+				"testId": "RxRP-o9gq",
+				"textColor": "rgba( 0, 0, 0, 1 )",
+				"font": {
+					"style": "Semibold",
+					"size": 16
+				},
+				"marginBottom": 10
+			}
+		},
+		"&-videoView": {
+			"marginBottom": 10,
+			"height": 200
+		}
+	}
 }

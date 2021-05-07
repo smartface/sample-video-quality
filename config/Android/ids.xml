@@ -11,8 +11,11 @@
     <item name="___library___Simple_listviewitem_LblChevron" type="id" />
     <item name="___library___Simple_gridviewItem_LblSubtitle" type="id" />
     <item name="___library___Simple_listviewitem_FlLine" type="id" />
-    <item name="_Page1_Lbl" type="id" />
-    <item name="_Page1_BtnNext" type="id" />
-    <item name="_Page2_Lbl" type="id" />
-    <item name="_Page2_BtnSayHello" type="id" />
+    <item name="_PgVideoRecorder_FlContainer" type="id" />
+    <item name="_PgVideoRecorder_FlContainer_BtnPicker" type="id" />
+    <item name="_PgVideoRecorder_FlContainer_BtnStart" type="id" />
+    <item name="_PgVideoRecorder_FlContainer_BtnSave" type="id" />
+    <item name="_PgVideoRecorder_FlContainer_LblDuration" type="id" />
+    <item name="_PgVideoRecorder_FlContainer_LblOldSize" type="id" />
+    <item name="_PgVideoRecorder_FlContainer_LblNewSize" type="id" />
 </resources>
