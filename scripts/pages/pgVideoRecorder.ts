@@ -132,7 +132,7 @@ export default class PgVideoRecorder extends PgVideoRecorderDesign {
             videoFile: this.video,
             outputFileName: `sf-video-${new Date().toISOString().split('.')[0]}`,
             onCompleted: ({ video: convertedVideo }) => this.convertToMp4OnCompleted(convertedVideo),
-            onFailure: () => this.convertToMp4OnFailure
+            onFailure: () => this.convertToMp4OnFailure()
         });
     }
     recordVideoOnFailure(message: string) {
