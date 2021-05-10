@@ -12,6 +12,22 @@
 
 A sample app to demonstrate Video Recording & MP4 Conversion Application that can be developed by Smartface.
 
+## iOS
+<div style="display:flex;">
+<img width=200 src="https://user-images.githubusercontent.com/25839586/117663879-cf461c80-b1a9-11eb-913f-81d936b37f81.png">
+<img width=200 src="https://user-images.githubusercontent.com/25839586/117663876-cead8600-b1a9-11eb-97e7-e077a41c8d6a.png" hspace="30">
+<img width=200 src="https://user-images.githubusercontent.com/25839586/117663873-ce14ef80-b1a9-11eb-89c7-b5b084941172.png">
+<img width=200 src="https://user-images.githubusercontent.com/25839586/117663849-c9e8d200-b1a9-11eb-896a-ff3f178c790c.png" hspace="30">
+</div>
+
+## Android
+<div style="display:flex;">
+<img width=200 src="https://user-images.githubusercontent.com/25839586/117663890-d10fe000-b1a9-11eb-8237-069de734396f.png">
+<img width=200 src="https://user-images.githubusercontent.com/25839586/117663886-cfdeb300-b1a9-11eb-80c1-1e6ee8b62d01.png" hspace="30">
+<img width=200 src="https://user-images.githubusercontent.com/25839586/117663888-d0774980-b1a9-11eb-841d-c451f864d803.png">
+<img width=200 src="https://user-images.githubusercontent.com/25839586/117663883-cfdeb300-b1a9-11eb-8342-15bff7d4da7b.png" hspace="30">
+</div>
+
 ## Need Help?
 
 Please [submit an issue](https://github.com/smartface/sample-video-quality/issues) on GitHub and provide information about your problem.
