@@ -7,7 +7,6 @@ import permission from 'sf-extension-utils/lib/permission';
 import File from 'sf-core/io/file';
 import Share from 'sf-core/global/share';
 
-
 const qualities = {
     iOS: [
         { key: 'Medium', value: Multimedia.VideoQuality.iOS.MEDIUM },
@@ -92,70 +91,82 @@ export default class PgVideoRecorder extends PgVideoRecorderDesign {
     cancelCallback(): void {
         console.log('cancel clicked');
     }
-    startRecording() {
-        this.changeRecordElementsVisible(false);
+    async startRecording() {
+        try {
+            this.changeRecordElementsVisible(false);
 
-        permission.getPermission({ androidPermission: Application.Android.Permissions.READ_EXTERNAL_STORAGE, permissionText: global.lang.fileAccessError })
-            .catch(() => console.error(global.lang.fileAccessError))
-            .then(() => permission.getPermission({
+            await permission.getPermission({
+                androidPermission: Application.Android.Permissions.READ_EXTERNAL_STORAGE,
+                permissionText: global.lang.fileAccessError
+            });
+            await permission.getPermission({
                 androidPermission: Application.Android.Permissions.CAMERA,
-                permissionText: global.lang.cameraPermissionFail, iosPermission: permission.IOS_PERMISSIONS.CAMERA
-            }))
-            .then(() => {
-                Multimedia.recordVideo({
-                    ios: {
-                        cameraDevice: System.OS === System.OSType.IOS ? Multimedia.iOS.CameraDevice.FRONT : undefined
-                    },
-                    page: this,
-                    videoQuality: this.selectedQuality,
-                    onSuccess: ({ video }) => {
-                        try {
-                            this.changeRecordElementsVisible(true);
-
-                            this.video = video;
-                            this.vwRecord.loadFile(video);
-
-                            this.lblOldSize.text = `Size without SF: ${(video.size / (1024 * 1024)).toFixed(2)}MiB`;
-                            this.lblNewSize.text = 'Calculating...';
-
-                            Multimedia.convertToMp4({
-                                videoFile: video,
-                                outputFileName: `sf-video-${new Date().toISOString().split('.')[0]}`,
-                                onCompleted: ({ video: convertedVideo }) => {
-                                    this.convertedVideo = convertedVideo;
-                                    this.lblNewSize.text = `Size with SF: ${(convertedVideo.size / (1024 * 1024)).toFixed(2)}MiB`;
-                                },
-                                onFailure: () => {
-                                    console.error('An error has occurred when video converting to mp4');
-                                }
-                            });
-                        } catch (err) {
-                            console.error('onSuccessError ', err);
-                        }
-                    },
-                    onFailure: e => {
-                        console.log(e);
-                    }
-                });
+                permissionText: global.lang.cameraPermissionFail,
+                iosPermission: permission.IOS_PERMISSIONS.CAMERA
             });
-    }
-    shareFile(video: File) {
-        if (System.OS === System.OSType.ANDROID) {
-            permission.getPermission({ androidPermission: Application.Android.Permissions.WRITE_EXTERNAL_STORAGE, permissionText: global.lang.fileAccessError })
-                .then(() => {
-                    Share.share({
-                        items: [video],
-                        page: this,
-                        blacklist: []
-                    });
-                });
-        }
-        else {
-            Share.share({
-                items: [video],
+
+            Multimedia.recordVideo({
+                ios: {
+                    cameraDevice: System.OS === System.OSType.IOS ? Multimedia.iOS.CameraDevice.FRONT : undefined
+                },
                 page: this,
-                blacklist: []
+                videoQuality: this.selectedQuality,
+                onSuccess: ({ video }) => this.recordVideoOnSuccess(video),
+                onFailure: ({ message }) => this.recordVideoOnFailure(message)
             });
+        } catch (err) {
+            console.error(err);
+        }
+    }
+    recordVideoOnSuccess(video: File) {
+        this.video = video;
+
+        this.changeRecordElementsVisible(true);
+
+        this.vwRecord.loadFile(this.video);
+
+        this.lblOldSize.text = `Size without SF: ${(this.video.size / (1024 * 1024)).toFixed(2)}MiB`;
+        this.lblNewSize.text = 'Calculating...';
+
+        Multimedia.convertToMp4({
+            videoFile: this.video,
+            outputFileName: `sf-video-${new Date().toISOString().split('.')[0]}`,
+            onCompleted: ({ video: convertedVideo }) => this.convertToMp4OnCompleted(convertedVideo),
+            onFailure: () => this.convertToMp4OnFailure
+        });
+    }
+    recordVideoOnFailure(message: string) {
+        console.error(message);
+    }
+    convertToMp4OnCompleted(convertedVideo: File) {
+        this.convertedVideo = convertedVideo;
+        this.lblNewSize.text = `Size with SF: ${(this.convertedVideo.size / (1024 * 1024)).toFixed(2)}MiB`;
+    }
+    convertToMp4OnFailure() {
+        console.error('An error has occurred when video converting to mp4');
+    }
+    async shareFile(video: File) {
+        try {
+            if (System.OS === System.OSType.ANDROID) {
+                await permission.getPermission({
+                    androidPermission: Application.Android.Permissions.WRITE_EXTERNAL_STORAGE,
+                    permissionText: global.lang.fileAccessError
+                });
+                Share.share({
+                    items: [video],
+                    page: this,
+                    blacklist: []
+                });
+            }
+            else {
+                Share.share({
+                    items: [video],
+                    page: this,
+                    blacklist: []
+                });
+            }
+        } catch (err) {
+            console.error(err);
         }
     }
 }
