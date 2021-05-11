@@ -6,7 +6,7 @@ import Multimedia from 'sf-core/device/multimedia';
 import permission from 'sf-extension-utils/lib/permission';
 import File from 'sf-core/io/file';
 import Share from 'sf-core/global/share';
-
+import * as Media from 'lib/media';
 
 const qualities = {
     iOS: [
@@ -77,6 +77,7 @@ export default class PgVideoRecorder extends PgVideoRecorderDesign {
         this.lblDuration.visible = visible;
         this.lblNewSize.visible = visible;
         this.lblOldSize.visible = visible;
+        this.lblMp4Size.visible = visible;
         this.vwRecord.visible = visible;
         this.btnSave.visible = visible;
         this.svVideo.layout.applyLayout();
@@ -101,42 +102,29 @@ export default class PgVideoRecorder extends PgVideoRecorderDesign {
                 androidPermission: Application.Android.Permissions.CAMERA,
                 permissionText: global.lang.cameraPermissionFail, iosPermission: permission.IOS_PERMISSIONS.CAMERA
             }))
-            .then(() => {
-                Multimedia.recordVideo({
-                    ios: {
-                        cameraDevice: System.OS === System.OSType.IOS ? Multimedia.iOS.CameraDevice.FRONT : undefined
-                    },
-                    page: this,
-                    videoQuality: this.selectedQuality,
-                    onSuccess: ({ video }) => {
-                        try {
-                            this.changeRecordElementsVisible(true);
+            .then(async () => {
+                try {
+                    const recordedVideo = await Media.recordVideo(this);
+                    this.video = recordedVideo;
 
-                            this.video = video;
-                            this.vwRecord.loadFile(video);
+                    this.changeRecordElementsVisible(true);
 
-                            this.lblOldSize.text = `Size without SF: ${(video.size / (1024 * 1024)).toFixed(2)}MiB`;
-                            this.lblNewSize.text = 'Calculating...';
+                    this.lblOldSize.text = `Size without SF: ${(this.video.size / (1024 * 1024)).toFixed(2)}MiB`;
+                    this.lblNewSize.text = 'Calculating...';
 
-                            Multimedia.convertToMp4({
-                                videoFile: video,
-                                outputFileName: `sf-video-${new Date().toISOString().split('.')[0]}`,
-                                onCompleted: ({ video: convertedVideo }) => {
-                                    this.convertedVideo = convertedVideo;
-                                    this.lblNewSize.text = `Size with SF: ${(convertedVideo.size / (1024 * 1024)).toFixed(2)}MiB`;
-                                },
-                                onFailure: () => {
-                                    console.error('An error has occurred when video converting to mp4');
-                                }
-                            });
-                        } catch (err) {
-                            console.error('onSuccessError ', err);
-                        }
-                    },
-                    onFailure: e => {
-                        console.log(e);
+                    if (System.OS === System.OSType.IOS) {
+                        const orientationFixedVideo = await Media.fixVideoOrientation(recordedVideo);
+                        this.video = orientationFixedVideo;
                     }
-                });
+
+                    this.vwRecord.loadFile(this.video);
+
+                    const convertedVideo = await Media.convertToMp4(this.video);
+                    this.lblNewSize.text = `Size with SF: ${(convertedVideo.size / (1024 * 1024)).toFixed(2)}MiB`;
+                    this.lblMp4Size.text = `Size with SF MP4: ${(convertedVideo.size / (1024 * 1024)).toFixed(2)}MiB`;
+                } catch (error) {
+                    console.error(error);
+                }
             });
     }
     shareFile(video: File) {
