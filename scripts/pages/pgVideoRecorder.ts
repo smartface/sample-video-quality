@@ -6,7 +6,8 @@ import Multimedia from 'sf-core/device/multimedia';
 import permission from 'sf-extension-utils/lib/permission';
 import File from 'sf-core/io/file';
 import Share from 'sf-core/global/share';
-
+import { Hardware } from 'sf-core/device';
+import AlertView from 'sf-core/ui/alertview';
 
 const qualities = {
     iOS: [
@@ -20,6 +21,11 @@ const qualities = {
         { key: 'Low', value: Multimedia.VideoQuality.LOW }
     ]
 };
+
+const lowQualityAndroidDevices = [
+    'xiaomi',
+    'huawei'
+];
 
 export default class PgVideoRecorder extends PgVideoRecorderDesign {
     video: File;
@@ -83,11 +89,33 @@ export default class PgVideoRecorder extends PgVideoRecorderDesign {
     }
     okCallback(params: { index: number }) {
         const selectedQuality = qualities[System.OS][params.index];
+        if (
+            selectedQuality.value === Multimedia.VideoQuality.LOW &&
+            lowQualityAndroidDevices.some((device) => Hardware.brandName.toLowerCase().includes(device.toLowerCase()))
+        ) {
+            const alertView = new AlertView({
+                title: "Attention!",
+                message: "Smartface recommends high-quality video recording because of your device."
+            });
+            alertView.addButton({
+                index: AlertView.ButtonType.NEGATIVE,
+                text: "Cancel"
+            });
+            alertView.addButton({
+                index: AlertView.ButtonType.POSITIVE,
+                text: "Continue",
+                onClick: () => this.selectPickerItem(selectedQuality, this.index);
+            });
+
+            alertView.show();
+        } else {
+            this.selectPickerItem(selectedQuality, this.index);
+        }
+    }
+    selectPickerItem(selectedQuality: { key: string, value: number }, index: number) {
         this.btnPicker.text = `Quality: ${selectedQuality.key}`;
         this.selectedQuality = selectedQuality.value;
-        this.index = params.index;
-
-        return params;
+        this.index = index;
     }
     cancelCallback(): void {
         console.log('cancel clicked');
