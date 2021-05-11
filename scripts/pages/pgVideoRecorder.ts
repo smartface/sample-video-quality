@@ -95,16 +95,21 @@ export default class PgVideoRecorder extends PgVideoRecorderDesign {
         ) {
             const alertView = new AlertView({
                 title: "Attention!",
-                message: "Smartface recommends high-quality video recording because of your device."
+                message: "Because of your device, LOW quality will yield in 144p resolution, which will not be ideal. Smartface recommends using HIGH Quality."
             });
             alertView.addButton({
                 index: AlertView.ButtonType.NEGATIVE,
-                text: "Cancel"
+                text: "High",
+                onClick: () => {
+                    const highQuality = qualities.Android.find(x => x.value === Multimedia.VideoQuality.HIGH);
+                    const highQualityIndex = qualities.Android.indexOf(highQuality);
+                    this.selectPickerItem(highQuality, highQualityIndex);
+                }
             });
             alertView.addButton({
                 index: AlertView.ButtonType.POSITIVE,
-                text: "Continue",
-                onClick: () => this.selectPickerItem(selectedQuality, this.index);
+                text: "Use Low Anyways",
+                onClick: () => this.selectPickerItem(selectedQuality, this.index)
             });
 
             alertView.show();
