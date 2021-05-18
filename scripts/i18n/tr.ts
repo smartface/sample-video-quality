@@ -41,5 +41,6 @@ SMF.i18n.defineLanguage('tr', {
 	"useFaceIDMessage": "Gelecekteki oturum açmalarında FaceID kullanmak ister misin?",
 	"scanFaceIDTitle": "FaceID ile oturum aç",
 	"scanFaceIDMessage": "Yüzünü tarat",
-	"chooseNavigationApp": "Navigasyon uygulaması seç"
+	"chooseNavigationApp": "Navigasyon uygulaması seç",
+	"fileAccessError": "Videonun çekilmesi için ayarlardan dosya izni vermelisin"
 });

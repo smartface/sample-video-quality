@@ -43,5 +43,6 @@ SMF.i18n.defineLanguage('en', {
 	"useFaceIDMessage": "Would you like to use FaceID login on your future logins?",
 	"scanFaceIDTitle": "Login with FaceID",
 	"scanFaceIDMessage": "Scan your face",
-	"chooseNavigationApp": "Choose Navigation App"
+	"chooseNavigationApp": "Choose Navigation App",
+	"fileAccessError": "You have to give file permission in settings for the video to be captured"
 });
