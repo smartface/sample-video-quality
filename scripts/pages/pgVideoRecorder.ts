@@ -6,6 +6,8 @@ import Multimedia from 'sf-core/device/multimedia';
 import permission from 'sf-extension-utils/lib/permission';
 import File from 'sf-core/io/file';
 import Share from 'sf-core/global/share';
+import { Hardware } from 'sf-core/device';
+import AlertView from 'sf-core/ui/alertview';
 
 const qualities = {
     iOS: [
@@ -19,6 +21,11 @@ const qualities = {
         { key: 'Low', value: Multimedia.VideoQuality.LOW }
     ]
 };
+
+const lowQualityAndroidDevices = [
+    'xiaomi',
+    'huawei'
+];
 
 export default class PgVideoRecorder extends PgVideoRecorderDesign {
     video: File;
@@ -82,11 +89,38 @@ export default class PgVideoRecorder extends PgVideoRecorderDesign {
     }
     okCallback(params: { index: number }) {
         const selectedQuality = qualities[System.OS][params.index];
+        if (
+            selectedQuality.value === Multimedia.VideoQuality.LOW &&
+            lowQualityAndroidDevices.some((device) => Hardware.brandName.toLowerCase().includes(device.toLowerCase()))
+        ) {
+            const alertView = new AlertView({
+                title: "Attention!",
+                message: "Because of your device, LOW quality will yield in 144p resolution, which will not be ideal. Smartface recommends using HIGH Quality."
+            });
+            alertView.addButton({
+                index: AlertView.ButtonType.NEGATIVE,
+                text: "High",
+                onClick: () => {
+                    const highQuality = qualities.Android.find(x => x.value === Multimedia.VideoQuality.HIGH);
+                    const highQualityIndex = qualities.Android.indexOf(highQuality);
+                    this.selectPickerItem(highQuality, highQualityIndex);
+                }
+            });
+            alertView.addButton({
+                index: AlertView.ButtonType.POSITIVE,
+                text: "Use Low Anyways",
+                onClick: () => this.selectPickerItem(selectedQuality, this.index)
+            });
+
+            alertView.show();
+        } else {
+            this.selectPickerItem(selectedQuality, this.index);
+        }
+    }
+    selectPickerItem(selectedQuality: { key: string, value: number }, index: number) {
         this.btnPicker.text = `Quality: ${selectedQuality.key}`;
         this.selectedQuality = selectedQuality.value;
-        this.index = params.index;
-
-        return params;
+        this.index = index;
     }
     cancelCallback(): void {
         console.log('cancel clicked');
